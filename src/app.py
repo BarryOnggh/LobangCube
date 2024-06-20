@@ -91,8 +91,22 @@ if st.session_state["authentication_status"]:
     print(USER_DATA)
 
     # Input section
+
+    #initialize session state
+    if 'push' not in st.session_state:
+        st.session_state.push = False
+    #push button function
+    def push_button():
+        st.session_state.push = True
+
+
+    
+    
     with st.container():
         col1, col2, col3 = st.columns((2, 4.2, 2), gap='medium')
+    
+    if not st.session_state.push:
+        col1=st.columns(3)[1]
         with col1:
             st.write("## Your Information")
             with st.form("my_form"):
@@ -104,14 +118,28 @@ if st.session_state["authentication_status"]:
                 income = st.number_input("Monthly Income", min_value=0, value=8000,step=1000)
                 expenditure = st.number_input("Monthly Expenditure", min_value=0, value=5000, step=1000)
                 savings = st.number_input("Savings", min_value=0, value=8000,step=1000)
-                submitted = st.form_submit_button("Calculate Score")
+                submitted = st.form_submit_button("Calculate Score",on_click=push_button)
+    else:
+        with col1:
+            st.write("## Your Information")
+            with st.form("my_form"):
+                housing = ['1&2-Room Flat', '4-Room Flat', '3-Room Flat', '5-Room', 'Executive Flat','Condominium','Landed Property']
+                age = st.number_input("Present Age", min_value=0, max_value=100, value=USER_DATA[2], disabled=False)
+                housing_name = st.selectbox("Current Housing Type", housing, index=housing.index(USER_DATA[3]), disabled=False)
+                housing_type = housing_name
+                cpf = st.number_input("CPF amount", min_value=0, value=round(USER_DATA[4]+USER_DATA[5]+USER_DATA[6]),step=1000, disabled=False)
+                income = st.number_input("Monthly Income", min_value=0, value=8000,step=1000)
+                expenditure = st.number_input("Monthly Expenditure", min_value=0, value=5000, step=1000)
+                savings = st.number_input("Savings", min_value=0, value=8000,step=1000)
+                submitted = st.form_submit_button("Calculate Score",on_click=push_button)
+
         with col2:
             st.write("## Lobang&sup3; Score")
             lobang_info = [float(arr[0]) for arr in getInfo(age,housing_type,income*12,cpf,expenditure*12,savings)]
             # print(lobang_info)
             lobang_score = getLobang(lobang_info[0],lobang_info[1],lobang_info[2])
             lobang = make_donut(lobang_score,str(lobang_score),"blue")    
-            st.altair_chart(lobang,on_select="ignore",use_container_width=True)
+            st.altair_chart(lobang,use_container_width=True)
             st.markdown(f"#### Quality of Life: {round(lobang_info[0],1)}/10",help="Expected quality of life")
             st.markdown(f"#### Disaster Preparedness: {round(lobang_info[1],1)}/10",help="How safe you are in case of a disaster")
             st.markdown(f"#### Retirement Readiness: {round(lobang_info[2],1)}/10",help="How ready you are for retirement")
